@@ -1,12 +1,22 @@
-# Brinmalte - Backend Ecommerce
+# Brinmalte - Piattaforma Ecommerce
 
-Backend per piattaforma ecommerce costruito con Strapi CMS e PostgreSQL.
+Piattaforma ecommerce completa con backend Strapi CMS e frontend Vue.js.
 
 ## 🚀 Tecnologie
 
+### Backend
 - **Strapi v5.28.0** - Headless CMS
 - **PostgreSQL 16** - Database
 - **Docker** - Containerizzazione del database
+
+### Frontend
+- **Vue.js 3** - Framework JavaScript
+- **TypeScript** - Type Safety
+- **Vue Router** - Routing
+- **Pinia** - State Management
+- **Axios** - HTTP Client
+
+### Generale
 - **Node.js 22** - Runtime
 
 ## 📋 Prerequisiti
@@ -64,11 +74,25 @@ npm run develop
 
 Strapi sarà disponibile su `http://localhost:1337`
 
+### 6. Configura e avvia il Frontend
+
+In un nuovo terminale:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Il frontend sarà disponibile su `http://localhost:5173`
+
 ## 📦 Comandi Disponibili
 
 ### Backend (Strapi)
 
 ```bash
+cd backend
+
 # Sviluppo con hot-reload
 npm run develop
 
@@ -80,6 +104,24 @@ npm run build
 
 # Deploy
 npm run deploy
+```
+
+### Frontend (Vue.js)
+
+```bash
+cd frontend
+
+# Sviluppo con hot-reload
+npm run dev
+
+# Build per produzione
+npm run build
+
+# Preview build di produzione
+npm run preview
+
+# Lint
+npm run lint
 ```
 
 ### Database (Docker)
@@ -102,22 +144,61 @@ docker-compose logs -f postgres
 
 ```
 brinmalte/
-├── backend/              # Strapi CMS
-│   ├── config/          # Configurazioni
-│   ├── src/             # Codice sorgente
-│   │   ├── api/        # API endpoints
-│   │   └── admin/      # Personalizzazioni admin
-│   └── .env            # Variabili d'ambiente
-├── docker-compose.yml   # Configurazione Docker per PostgreSQL
-└── README.md           # Documentazione
+├── backend/                # Strapi CMS (Backend)
+│   ├── config/            # Configurazioni
+│   ├── src/               # Codice sorgente
+│   │   ├── api/          # API endpoints
+│   │   └── admin/        # Personalizzazioni admin
+│   └── .env              # Variabili d'ambiente
+├── frontend/              # Vue.js (Frontend)
+│   ├── src/
+│   │   ├── components/   # Componenti Vue
+│   │   ├── views/        # Pagine/Views
+│   │   ├── stores/       # Pinia stores
+│   │   ├── services/     # Servizi API
+│   │   └── router/       # Configurazione routing
+│   └── .env              # Variabili d'ambiente
+├── docker-compose.yml     # Configurazione Docker per PostgreSQL
+└── README.md             # Documentazione
 ```
 
-## 🔐 Primo Accesso
+## 🔐 Setup Iniziale
+
+### Backend (Strapi Admin)
 
 1. Avvia il database: `docker-compose up -d`
 2. Avvia Strapi: `cd backend && npm run develop`
 3. Apri il browser su `http://localhost:1337/admin`
 4. Crea il tuo primo utente amministratore
+5. Crea i Content Types necessari (vedi sezione seguente)
+
+### Configurazione Content Types in Strapi
+
+Per far funzionare l'ecommerce, crea questi Content Types dall'admin panel di Strapi:
+
+#### Product (Collection Type)
+- **name** (Text, Required)
+- **description** (Rich Text)
+- **price** (Number, Decimal, Required)
+- **slug** (UID, Required)
+- **stock** (Number, Integer, Required, Default: 0)
+- **images** (Media, Multiple files)
+- **category** (Relation: Many-to-One with Category)
+
+#### Category (Collection Type)
+- **name** (Text, Required)
+- **slug** (UID, Required)
+- **description** (Text)
+
+**Importante**: Ricordati di configurare i permessi per consentire l'accesso pubblico alle API:
+1. Vai su Settings → Users & Permissions → Roles → Public
+2. Abilita `find` e `findOne` per Products e Categories
+
+### Frontend
+
+1. Avvia il frontend: `cd frontend && npm run dev`
+2. Apri il browser su `http://localhost:5173`
+3. Naviga tra le pagine e inizia a testare l'ecommerce!
 
 ## 📝 Note per Ecommerce
 
