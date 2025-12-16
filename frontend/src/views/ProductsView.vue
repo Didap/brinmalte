@@ -3,15 +3,16 @@
     <div class="container">
       <h1>I nostri prodotti</h1>
       
-      <div v-if="productsStore.loading" class="loading">
-        Caricamento prodotti...
+      <div v-if="productsStore.loading" class="loading-state">
+        <ProgressSpinner />
+        <p>Caricamento prodotti...</p>
       </div>
       
-      <div v-else-if="productsStore.error" class="error">
+      <Message v-else-if="productsStore.error" severity="error">
         {{ productsStore.error }}
-      </div>
+      </Message>
       
-      <div v-else>
+      <template v-else>
         <div v-if="productsStore.products.length > 0" class="products-grid">
           <ProductCard
             v-for="product in productsStore.products"
@@ -20,33 +21,20 @@
           />
         </div>
         
-        <div v-else class="no-products">
-          <p>Nessun prodotto disponibile al momento.</p>
-        </div>
+        <Message v-else severity="info">
+          Nessun prodotto disponibile al momento.
+        </Message>
         
         <!-- Paginazione -->
-        <div v-if="productsStore.totalPages > 1" class="pagination">
-          <button
-            @click="goToPage(productsStore.currentPage - 1)"
-            :disabled="productsStore.currentPage <= 1"
-            class="btn-page"
-          >
-            ← Precedente
-          </button>
-          
-          <span class="page-info">
-            Pagina {{ productsStore.currentPage }} di {{ productsStore.totalPages }}
-          </span>
-          
-          <button
-            @click="goToPage(productsStore.currentPage + 1)"
-            :disabled="productsStore.currentPage >= productsStore.totalPages"
-            class="btn-page"
-          >
-            Successiva →
-          </button>
+        <div v-if="productsStore.totalPages > 1" class="pagination-wrapper">
+          <Paginator
+            :rows="12"
+            :totalRecords="productsStore.totalProducts"
+            :rowsPerPageOptions="[12, 24, 48]"
+            @page="onPageChange"
+          />
         </div>
-      </div>
+      </template>
     </div>
   </div>
 </template>
@@ -55,11 +43,15 @@
 import { onMounted } from 'vue'
 import { useProductsStore } from '@/stores/products'
 import ProductCard from '@/components/ProductCard.vue'
+import ProgressSpinner from 'primevue/progressspinner'
+import Message from 'primevue/message'
+import Paginator from 'primevue/paginator'
 
 const productsStore = useProductsStore()
 
-const goToPage = async (page: number) => {
-  await productsStore.fetchProducts(page)
+const onPageChange = async (event: any) => {
+  const page = event.page + 1 // PrimeVue usa zero-based index
+  await productsStore.fetchProducts(page, event.rows)
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
@@ -71,20 +63,20 @@ onMounted(async () => {
 <style scoped>
 .products-page {
   min-height: 100vh;
-  padding: 3rem 0;
+  padding: 3rem 2rem;
 }
 
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 2rem;
 }
 
 h1 {
-  font-size: 2.5rem;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 700;
   margin: 0 0 2rem 0;
-  color: #333;
   text-align: center;
+  color: var(--p-text-color);
 }
 
 .products-grid {
@@ -94,50 +86,20 @@ h1 {
   margin-bottom: 3rem;
 }
 
-.loading,
-.error,
-.no-products {
+.loading-state {
   text-align: center;
-  padding: 3rem;
-  font-size: 1.2rem;
-  color: #666;
+  padding: 4rem 2rem;
 }
 
-.error {
-  color: #f44336;
+.loading-state p {
+  margin-top: 1rem;
+  color: var(--p-text-muted-color);
 }
 
-.pagination {
+.pagination-wrapper {
   display: flex;
   justify-content: center;
-  align-items: center;
-  gap: 2rem;
-  margin: 3rem 0;
-}
-
-.btn-page {
-  background: #4CAF50;
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: background 0.2s;
-}
-
-.btn-page:hover:not(:disabled) {
-  background: #45a049;
-}
-
-.btn-page:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-}
-
-.page-info {
-  font-weight: 600;
-  color: #333;
+  margin-top: 3rem;
 }
 
 @media (max-width: 768px) {

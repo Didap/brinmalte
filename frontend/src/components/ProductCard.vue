@@ -1,68 +1,61 @@
 <template>
-  <div class="group flex h-full flex-col overflow-hidden rounded-lg border border-border bg-white shadow-sm transition-all hover:shadow-lg">
-    <RouterLink 
-      :to="`/products/${product.attributes.slug}`" 
-      class="relative block aspect-square overflow-hidden bg-cream-100"
-    >
-      <img
-        v-if="productImage"
-        :src="productImage"
-        :alt="product.attributes.name"
-        class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-      />
-      <div v-else class="flex h-full w-full items-center justify-center text-6xl">
-        📦
-      </div>
-      
-      <div 
-        v-if="product.attributes.stock > 0 && product.attributes.stock < 10" 
-        class="absolute right-2 top-2 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-white shadow-md"
-      >
-        Solo {{ product.attributes.stock }} disponibili
-      </div>
-      
-      <div 
-        v-else-if="product.attributes.stock <= 0" 
-        class="absolute right-2 top-2 rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-white shadow-md"
-      >
-        Esaurito
-      </div>
-    </RouterLink>
-
-    <div class="flex flex-1 flex-col p-4">
-      <h3 class="mb-2 text-lg font-semibold text-secondary">
-        <RouterLink 
-          :to="`/products/${product.attributes.slug}`"
-          class="hover:text-primary transition-colors"
-        >
-          {{ product.attributes.name }}
-        </RouterLink>
-      </h3>
-      
-      <p 
-        v-if="product.attributes.description" 
-        class="mb-4 flex-1 text-sm text-secondary/70"
-      >
-        {{ truncateDescription(product.attributes.description) }}
-      </p>
-      
-      <div class="mt-auto space-y-3">
-        <div class="flex items-center justify-between">
-          <span class="text-2xl font-bold text-primary">
-            €{{ product.attributes.price.toFixed(2) }}
-          </span>
+  <Card class="product-card">
+    <template #header>
+      <RouterLink :to="`/products/${product.attributes.slug}`" class="product-image-link">
+        <img 
+          v-if="productImage"
+          :src="productImage" 
+          :alt="product.attributes.name"
+          class="product-image"
+        />
+        <div v-else class="no-image">
+          <i class="pi pi-image" style="font-size: 4rem"></i>
         </div>
         
-        <button
-          @click="addToCart"
-          :disabled="product.attributes.stock <= 0"
-          class="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-primary/90 hover:shadow-md disabled:cursor-not-allowed disabled:bg-secondary/50 disabled:opacity-50"
+        <Tag 
+          v-if="product.attributes.stock > 0 && product.attributes.stock < 10"
+          severity="warn"
+          class="stock-badge"
         >
-          {{ product.attributes.stock > 0 ? 'Aggiungi al carrello' : 'Non disponibile' }}
-        </button>
-      </div>
-    </div>
-  </div>
+          Solo {{ product.attributes.stock }} disponibili
+        </Tag>
+        
+        <Tag 
+          v-else-if="product.attributes.stock <= 0"
+          severity="secondary"
+          class="stock-badge"
+        >
+          Esaurito
+        </Tag>
+      </RouterLink>
+    </template>
+    
+    <template #title>
+      <RouterLink :to="`/products/${product.attributes.slug}`" class="product-title">
+        {{ product.attributes.name }}
+      </RouterLink>
+    </template>
+    
+    <template #subtitle>
+      <div class="product-price">€{{ product.attributes.price.toFixed(2) }}</div>
+    </template>
+    
+    <template #content>
+      <p v-if="product.attributes.description" class="product-description">
+        {{ truncateDescription(product.attributes.description, 80) }}
+      </p>
+    </template>
+    
+    <template #footer>
+      <Button 
+        label="Aggiungi al carrello"
+        icon="pi pi-shopping-cart"
+        class="w-full"
+        :disabled="product.attributes.stock <= 0"
+        @click="addToCart"
+      />
+    </template>
+  </Card>
 </template>
 
 <script setup lang="ts">
@@ -70,6 +63,9 @@ import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useCartStore } from '@/stores/cart'
 import { getImageUrl, type Product } from '@/services/strapi'
+import Card from 'primevue/card'
+import Button from 'primevue/button'
+import Tag from 'primevue/tag'
 
 const props = defineProps<{
   product: Product
@@ -85,7 +81,8 @@ const productImage = computed(() => {
   return null
 })
 
-const truncateDescription = (text: string, maxLength = 100) => {
+const truncateDescription = (text: string, maxLength = 80) => {
+  if (!text) return ''
   if (text.length <= maxLength) return text
   return text.substring(0, maxLength) + '...'
 }
@@ -96,4 +93,75 @@ const addToCart = () => {
   }
 }
 </script>
+
+<style scoped>
+.product-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.product-image-link {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 250px;
+  overflow: hidden;
+}
+
+.product-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+
+.product-card:hover .product-image {
+  transform: scale(1.05);
+}
+
+.no-image {
+  width: 100%;
+  height: 100%;
+  background: var(--p-surface-100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--p-surface-400);
+}
+
+.stock-badge {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+}
+
+.product-title {
+  color: var(--p-text-color);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.product-title:hover {
+  color: var(--p-primary-color);
+}
+
+.product-price {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--p-primary-color);
+}
+
+.product-description {
+  color: var(--p-text-muted-color);
+  line-height: 1.5;
+  margin: 0;
+}
+</style>
 
